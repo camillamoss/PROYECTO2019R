@@ -49,7 +49,30 @@ cauto_data_html <- html_nodes(webpage,'.cauto.tag-mobile')
 cauto_data <- html_text(cauto_data_html)
 head(cauto_data)
 
+for(i in 1:length(precio_data)){
+  #precio_data[i]<-substr(precio_data[i],1,nchar(precio_data[i])-1)
+  precio_data[i] <- gsub("€", "", precio_data[i])
+}
 
+head(precio_data)
+
+for(i in 1:length(ano_data)){
+  ano_data[i] <- gsub("año ", "", ano_data[i])
+}
+
+head(ano_data)
+
+for(i in 1:length(cc_data)){
+  cc_data[i] <- gsub(" cv", "", cc_data[i])
+}
+
+head(cc_data)
+
+for(i in 1:length(kms_data)){
+  kms_data[i] <- gsub(" kms", "", kms_data[i])
+}
+
+head(kms_data)
 ```
 
 ## Including Plots
