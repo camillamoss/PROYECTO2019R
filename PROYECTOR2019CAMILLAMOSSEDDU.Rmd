@@ -2,19 +2,21 @@
 title: "PROYECTOR2019"
 author: "CAMILLA MOSSEDDU"
 date: "16/11/2019"
-output: html_document
+output:
+  html_document:
+    theme: yeti
 ---
 
-{r setup, include=FALSE}
+```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-install.packages('rvest')
 
+```
 
 
 ## R Markdown
 
 
-{r}
+```{r}
 #Loading the rvest package
 library('rvest')
 library(tibble)
@@ -25,10 +27,8 @@ url <- 'https://www.milanuncios.com/coches-de-segunda-mano-en-madrid/'
 #Reading the HTML code from the website
 webpage <- read_html(url)
 
-
 #find the listing nodes and id of each node
 listings<-html_nodes(webpage, "div.aditem-detail")
-
 #search each listing node for the child ticket and limit view criteria
 precio_data<-sapply(listings, function(x) {html_node(x, ".aditem-price") %>% html_text()} ) 
 kms_data<-sapply(listings, function(x) {html_node(x, ".kms.tag-mobile") %>% html_text()} ) 
@@ -36,3 +36,27 @@ ano_data<-sapply(listings, function(x) {html_node(x, ".ano.tag-mobile") %>% html
 die_data<-sapply(listings, function(x) {html_node(x, ".die.tag-mobile") %>% html_text()} ) 
 cc_data<-sapply(listings, function(x) {html_node(x, ".cc.tag-mobile") %>% html_text()} )
 puertas_data<-sapply(listings, function(x) {html_node(x, ".ejes.tag-mobile") %>% html_text()} )
+```
+
+```{r}
+# crear dataframe de vectores
+coches_df <- data.frame(precio_data,
+                           kms_data,
+                            ano_data,
+                           die_data,cc_data,puertas_data)
+```
+
+
+
+```{r}
+coches_df$ano_data <- gsub("año ", "", coches_df$ano_data)
+coches_df$kms_data<- gsub(" kms", "", coches_df$kms_data)
+coches_df$cc_data<- gsub(" cv", "", coches_df$cc_data)
+coches_df$puertas_data<- gsub(" puertas", "", coches_df$puertas_data)
+coches_df$precio_data<- gsub("€", "", coches_df$precio_data)
+```
+
+```{r}
+gg <- ggplot(data = coches_df, mapping = aes(x = precio_data, y = cc_data))
+plot(gg)
+```
