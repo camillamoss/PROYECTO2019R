@@ -28,6 +28,26 @@ precio_data_html <- html_nodes(webpage,'.aditem-price')
 precio_data <- html_text(precio_data_html)
 head(precio_data)
 
+kms_data_html <- html_nodes(webpage,'.kms.tag-mobile')
+kms_data <- html_text(kms_data_html)
+head(kms_data)
+
+ano_data_html <- html_nodes(webpage,'.ano.tag-mobile')
+ano_data <- html_text(ano_data_html)
+head(ano_data)
+
+die_data_html <- html_nodes(webpage,'.die.tag-mobile')
+die_data <- html_text(die_data_html)
+head(die_data)
+
+
+cc_data_html <- html_nodes(webpage,'.cc.tag-mobile')
+cc_data <- html_text(cc_data_html)
+head(cc_data)
+
+cauto_data_html <- html_nodes(webpage,'.cauto.tag-mobile')
+cauto_data <- html_text(cauto_data_html)
+head(cauto_data)
 
 
 ```
