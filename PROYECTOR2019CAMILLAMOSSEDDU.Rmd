@@ -56,7 +56,12 @@ coches_df$puertas_data<- gsub(" puertas", "", coches_df$puertas_data)
 coches_df$precio_data<- gsub("€", "", coches_df$precio_data)
 ```
 
+#hacemos un ggplot entre el precio y los caballos (cv).
 ```{r}
-gg <- ggplot(data = coches_df, mapping = aes(x = precio_data, y = cc_data))
-plot(gg)
+ggplot(data = coches_df, mapping = aes(x = as.numeric(cc_data), y = as.numeric(precio_data), colour = ano_data)) +
+  geom_point()
+```
+#hacemos un grafico de barras con numero de coches por años.
+```{r}
+ggplot(coches_df, aes(ano_data)) + geom_bar(fill='darkblue',color="darkred") 
 ```
