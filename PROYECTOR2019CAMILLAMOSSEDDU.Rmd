@@ -4,48 +4,61 @@ author: "CAMILLA MOSSEDDU"
 date: "16/11/2019"
 output:
   html_document:
+    toc: true
     theme: yeti
+    toc_depth: 3
 ---
-
 ```{r setup, include=FALSE}
+options(encoding = 'UTF-8')
 knitr::opts_chunk$set(echo = TRUE)
-
+#Loading the rvest package
+library('rvest')
+library( tables ) # Presentación de tablas
+library("ggplot2")
 ```
 
 
-## R Markdown
+# Seccion 1
 
+##Una sección en el que indiquen dos páginas con recursos sobre expresiones regulares discutidas (cuál es mejor, cuál es peor, por qué).
+
+
+
+# Seccion 2
+##Una sección en la que se indiquen dos páginas con recursos sobre markdown y discutirlas como antes.
+
+# Seccion 3
 
 ```{r}
-#Loading the rvest package
-library('rvest')
-library(tibble)
-library (purrr)
-library( tables ) # Presentación de tablas 
+
 #Specifying the url for desired website to be scraped
-url <- 'https://www.milanuncios.com/coches-de-segunda-mano-en-madrid/'
+url <- 'https://www.milanuncios.com/coches-de-segunda-mano/'
 #Reading the HTML code from the website
 webpage <- read_html(url)
 
+
 #find the listing nodes and id of each node
 listings<-html_nodes(webpage, "div.aditem-detail")
+
 #search each listing node for the child ticket and limit view criteria
 precio_data<-sapply(listings, function(x) {html_node(x, ".aditem-price") %>% html_text()} ) 
 kms_data<-sapply(listings, function(x) {html_node(x, ".kms.tag-mobile") %>% html_text()} ) 
 ano_data<-sapply(listings, function(x) {html_node(x, ".ano.tag-mobile") %>% html_text()} ) 
 die_data<-sapply(listings, function(x) {html_node(x, ".die.tag-mobile") %>% html_text()} ) 
+gas_data<-sapply(listings, function(x) {html_node(x, ".gas.tag-mobile") %>% html_text()} ) 
 cc_data<-sapply(listings, function(x) {html_node(x, ".cc.tag-mobile") %>% html_text()} )
 puertas_data<-sapply(listings, function(x) {html_node(x, ".ejes.tag-mobile") %>% html_text()} )
 ```
+
 
 ```{r}
 # crear dataframe de vectores
 coches_df <- data.frame(precio_data,
                            kms_data,
                             ano_data,
-                           die_data,cc_data,puertas_data)
+                           die_data,gas_data,cc_data,puertas_data)
+coches_df<-na.omit(coches_df)
 ```
-
 
 
 ```{r}
@@ -56,12 +69,32 @@ coches_df$puertas_data<- gsub(" puertas", "", coches_df$puertas_data)
 coches_df$precio_data<- gsub("€", "", coches_df$precio_data)
 ```
 
-#hacemos un ggplot entre el precio y los caballos (cv).
+#Hacemos un plot entre el precio y los caballos.
 ```{r}
 ggplot(data = coches_df, mapping = aes(x = as.numeric(cc_data), y = as.numeric(precio_data), colour = ano_data)) +
   geom_point()
 ```
-#hacemos un grafico de barras con numero de coches por años.
+
+
 ```{r}
-ggplot(coches_df, aes(ano_data)) + geom_bar(fill='darkblue',color="darkred") 
+ggplot(coches_df, aes(ano_data)) + geom_bar(fill='darkblue',color="darkred")  
+```
+
+```{r}
+ggplot(coches_df, aes(x = puertas_data, y = precio_data)) +
+  geom_point() + geom_smooth() + 
+  facet_grid(~die_data)
+```
+
+```{r}
+#https://ggplot2.tidyverse.org/reference/ggtheme.html
+p1 <- ggplot(coches_df) +
+  geom_point(aes(x = puertas_data, y = precio_data, colour = kms_data)) +
+  labs(title = "Numeros puertas y precios",
+       caption = "Data from British University",
+       tag = "Cambiar Tema GGPLOT",
+       x = "Sex",
+       y = "Salary",
+       colour = "kms_data")
+p1 + theme_dark()
 ```
