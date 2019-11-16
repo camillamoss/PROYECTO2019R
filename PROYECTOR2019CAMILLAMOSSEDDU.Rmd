@@ -40,14 +40,13 @@ die_data_html <- html_nodes(webpage,'.die.tag-mobile')
 die_data <- html_text(die_data_html)
 head(die_data)
 
-
 cc_data_html <- html_nodes(webpage,'.cc.tag-mobile')
 cc_data <- html_text(cc_data_html)
 head(cc_data)
 
-cauto_data_html <- html_nodes(webpage,'.cauto.tag-mobile')
-cauto_data <- html_text(cauto_data_html)
-head(cauto_data)
+puertas_data_html <- html_nodes(webpage,'.ejes.tag-mobile')
+puertas_data <- html_text(puertas_data_html)
+head(puertas_data)
 
 for(i in 1:length(precio_data)){
   #precio_data[i]<-substr(precio_data[i],1,nchar(precio_data[i])-1)
