@@ -2,14 +2,15 @@
 title: "PROYECTOR2019"
 author: "CAMILLA MOSSEDDU"
 date: "16/11/2019"
-output:
+output: 
   html_document:
     toc: true
-    theme: yeti
+    theme: united
     toc_depth: 3
+
 ---
+
 ```{r setup, include=FALSE}
-options(encoding = 'UTF-8')
 knitr::opts_chunk$set(echo = TRUE)
 #Loading the rvest package
 library('rvest')
@@ -18,16 +19,18 @@ library("ggplot2")
 ```
 
 
+
+
+
 # Seccion 1
 
-##Una sección en el que indiquen dos páginas con recursos sobre expresiones regulares discutidas (cuál es mejor, cuál es peor, por qué).
+## Una sección en el que indiquen dos páginas con recursos sobre expresiones regulares discutidas (cuál es mejor, cuál es peor, por qué).
 
+https://rstudio.com/wp-content/uploads/2015/03/rmarkdown-spanish.pdf
 
 
 # Seccion 2
-##Una sección en la que se indiquen dos páginas con recursos sobre markdown y discutirlas como antes.
-
-# Seccion 3
+## Una sección en la que se indiquen dos páginas con recursos sobre markdown y discutirlas como antes.
 
 ```{r}
 
@@ -35,8 +38,6 @@ library("ggplot2")
 url <- 'https://www.milanuncios.com/coches-de-segunda-mano/'
 #Reading the HTML code from the website
 webpage <- read_html(url)
-
-
 #find the listing nodes and id of each node
 listings<-html_nodes(webpage, "div.aditem-detail")
 
@@ -51,16 +52,28 @@ puertas_data<-sapply(listings, function(x) {html_node(x, ".ejes.tag-mobile") %>%
 ```
 
 
+
+
+
+
 ```{r}
 # crear dataframe de vectores
 coches_df <- data.frame(precio_data,
                            kms_data,
                             ano_data,
                            die_data,gas_data,cc_data,puertas_data)
-coches_df<-na.omit(coches_df)
+
+#combinamos las variables de diesel y gasolina en una misma columna
+coches_df$combustible<-NA
+coches_df$combustible[which(!is.na(coches_df$gas_data))]<-as.character(coches_df$gas_data[which(!is.na(coches_df$gas_data))])
+coches_df$combustible[which(!is.na(coches_df$die_data))]<-as.character(coches_df$die_data[which(!is.na(coches_df$die_data))])
+
+#eliminamos las columnas de diesel y gasolina
+coches_df <- subset(coches_df, select = 
+      c(precio_data,kms_data,ano_data,cc_data,puertas_data,combustible))
 ```
 
-
+#coches_df<-na.omit(coches_df)
 ```{r}
 coches_df$ano_data <- gsub("año ", "", coches_df$ano_data)
 coches_df$kms_data<- gsub(" kms", "", coches_df$kms_data)
@@ -68,6 +81,9 @@ coches_df$cc_data<- gsub(" cv", "", coches_df$cc_data)
 coches_df$puertas_data<- gsub(" puertas", "", coches_df$puertas_data)
 coches_df$precio_data<- gsub("€", "", coches_df$precio_data)
 ```
+
+
+
 
 #Hacemos un plot entre el precio y los caballos.
 ```{r}
@@ -78,23 +94,50 @@ ggplot(data = coches_df, mapping = aes(x = as.numeric(cc_data), y = as.numeric(p
 
 ```{r}
 ggplot(coches_df, aes(ano_data)) + geom_bar(fill='darkblue',color="darkred")  
-```
 
-```{r}
+{r eval=FALSE, include=FALSE}
 ggplot(coches_df, aes(x = puertas_data, y = precio_data)) +
   geom_point() + geom_smooth() + 
-  facet_grid(~die_data)
+  facet_grid(~combustible)
 ```
+
+
+```{r}
+Salaries <- read.csv("C:/Users/50051120/Desktop/Clases R/PracticaCamilla/Salaries.csv")
+```
+
 
 ```{r}
 #https://ggplot2.tidyverse.org/reference/ggtheme.html
 p1 <- ggplot(coches_df) +
-  geom_point(aes(x = puertas_data, y = precio_data, colour = kms_data)) +
-  labs(title = "Numeros puertas y precios",
-       caption = "Data from British University",
-       tag = "Cambiar Tema GGPLOT",
-       x = "Sex",
-       y = "Salary",
-       colour = "kms_data")
+  geom_point(aes(x = as.numeric(cc_data), y = as.numeric(precio_data), colour = combustible)) +
+  labs(title = "Precio VS Caballos",
+       subtitle = "Datos de coches",
+       caption = "Datos de Milanuncios",
+       tag = "Figure 1",
+       x = "Caballos",
+       y = "Precio",
+       colour = "Combustible")
 p1 + theme_dark()
+```
+
+
+
+```{r}
+#https://cran.r-project.org/web/packages/expss/vignettes/tables-with-labels.html
+library(expss)
+Salaries = apply_labels(coches_df,
+                      precio_data = "Precio",
+                      combustible = "Combustible",
+                      ano_data = "Año",
+                      kms_data = "Kilometros",
+                      puertas_data = "Puertas",
+                      cc_data = "Caballos"
+)
+cro(coches_df$precio_data, coches_df$puertas_data)
+```
+
+
+```{r}
+cro_cpct(coches_df$ano_data, list(total(), coches_df$combustible, coches_df$puertas_data))
 ```
