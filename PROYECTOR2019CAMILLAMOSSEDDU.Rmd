@@ -1,43 +1,85 @@
 ---
-title: "PROYECTOR2019"
+title: "PROYECTO R 2019"
 author: "CAMILLA MOSSEDDU"
 date: "16/11/2019"
-output: 
+output:
   html_document:
-    toc: true
     theme: united
+    toc: yes
     toc_depth: 3
-
+  pdf_document:
+    toc: yes
+    toc_depth: '3'
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+options(encoding = 'UTF-8')
+
+```
+
+```{r include=FALSE}
+install.packages("rvest",repos="https://cran.rstudio.com/bin/windows/Rtools/")
+install.packages("tables", repos="https://cran.rstudio.com/bin/windows/contrib/3.6/tables_0.8.8.zip")
+install.packages("ggplot2", repos="https://cran.rstudio.com/bin/windows/contrib/3.6/ggplot2_3.2.1.zip")
+install.packages("readr", repos="https://cran.rstudio.com/bin/windows/contrib/3.6/readr_1.3.1.zip")
+install.packages("expss", repos="https://cran.rstudio.com/bin/windows/contrib/3.6/expss_0.9.1.zip")
+
 #Loading the rvest package
-library('rvest')
-library( tables ) # Presentación de tablas
-library("ggplot2")
+library(rvest)
+library(tables) # Presentación de tablas
+library(ggplot2)
+library(readr)
+library(expss)
 ```
 
 
 
+# Sección 1 Expresiones regulares
+
+Las expresiones regulares son una secuencia de caracteres que conforma un patrón de búsqueda. Permiten filtrar textos y encontrar coincidencias. Además se utilizan para validar datos, como por ejemplo fechas, documentos de identidad o contraseñas. Se utilizan también para reemplazar un texto con unas determinadas características concretas por otro.
+
+Actualmente muchos lenguajes de programación cuentan con el soporte necesario para el uso de estas expresiones regulares.
+
+Estos characters pueden ser:
 
 
-# Seccion 1
-
-## Una sección en el que indiquen dos páginas con recursos sobre expresiones regulares discutidas (cuál es mejor, cuál es peor, por qué).
-
-https://rstudio.com/wp-content/uploads/2015/03/rmarkdown-spanish.pdf
+![Regex Cheatsheet](recursos/RegexCommands.png)
 
 
-# Seccion 2
-## Una sección en la que se indiquen dos páginas con recursos sobre markdown y discutirlas como antes.
+# Sección 2 Markdown
 
-```{r}
+Markdown es un lenguaje de marcado que facilita la aplicación de formato a u texto, empleando unos caracteres (como marcas) de una forma especial. Entre dichos caracteres existen cabeceras, listas, links, imágenes, tablas, videos, etc.
+La intención de Markdown es facilitar el uso de un simple texto plano que pueda ser convertido en un (X)HTML valido. Es decir, que el usuario escriba mas rápido y obtenga un resultado final mejor.
+
+Algunos de los comandos que se utilizan son los siguientes:
+
+
+![Markdown Cheatsheet](recursos/MarkdownCommand.png)
+
+Existen algunos editores de Markdown que se recomienda usar como: Typora, iA Writer, Visual Studio Code, etc.
+
+
+# Sección 3
+Una sección en la que se carguen, estudien, representen gráficamente unos datos de tu elección. No se trata de hacer un análisis estadístico (está fuera de alcance) pero sí un estudio descriptivo mínimo de los aspectos más relevantes de los datos. Este estudio tiene que contener, al menos:
+* Un gráfico generado con `ggplot2`.
+* Una tabla.
+
+En primer lugar, nosotros hemos utilizado la técnica de Web Scraping para obtener los datos de milanuncios, concretamente los datos de coches.
+
+Entre los datos concretos de coches, nosotros hemos seleccionado el precio, los kilómetros de uso que tienen, el año del modelo, el tipo de combustible que utilizan, la cilindrada y el número de puertas.
+
+En este caso, ha sido necesario realizar un tratamiento a los datos. En primer lugar, hemos tenido que eliminar las unidades (año, kms, puertas,etc) de las columnas, puesto que no se ha podido modificar mediante la selección de nodos de Web Scrapping.
+
+
+```{r eval=FALSE, include=FALSE}
 
 #Specifying the url for desired website to be scraped
 url <- 'https://www.milanuncios.com/coches-de-segunda-mano/'
 #Reading the HTML code from the website
 webpage <- read_html(url)
+
+
 #find the listing nodes and id of each node
 listings<-html_nodes(webpage, "div.aditem-detail")
 
@@ -51,12 +93,9 @@ cc_data<-sapply(listings, function(x) {html_node(x, ".cc.tag-mobile") %>% html_t
 puertas_data<-sapply(listings, function(x) {html_node(x, ".ejes.tag-mobile") %>% html_text()} )
 ```
 
+En Milanuncios, se dibujaba el tipo de combustible en dos elementos distintos (gasolina y diésel), por tanto, a la hora de obtener dicha información, se creaban dos columnas. Por tanto, hemos tenido que combinar dicha información en una única columna (llamada combustible).
 
-
-
-
-
-```{r}
+```{r eval=FALSE, include=FALSE}
 # crear dataframe de vectores
 coches_df <- data.frame(precio_data,
                            kms_data,
@@ -71,43 +110,64 @@ coches_df$combustible[which(!is.na(coches_df$die_data))]<-as.character(coches_df
 #eliminamos las columnas de diesel y gasolina
 coches_df <- subset(coches_df, select = 
       c(precio_data,kms_data,ano_data,cc_data,puertas_data,combustible))
+
+coches_df<-na.omit(coches_df)
 ```
 
-#coches_df<-na.omit(coches_df)
-```{r}
+Una vez eliminados las unidades y habiendo combinado las columnas, hemos exportado los datos en un fichero llamado Coches.csv. 
+
+```{r eval=FALSE, include=FALSE}
 coches_df$ano_data <- gsub("año ", "", coches_df$ano_data)
 coches_df$kms_data<- gsub(" kms", "", coches_df$kms_data)
 coches_df$cc_data<- gsub(" cv", "", coches_df$cc_data)
 coches_df$puertas_data<- gsub(" puertas", "", coches_df$puertas_data)
 coches_df$precio_data<- gsub("€", "", coches_df$precio_data)
+con<-file('Coches.csv',encoding="UTF-8")
+write.csv(coches_df,  file=con,row.names=FALSE)
 ```
 
+A continuación se muestran algunos de los datos ya limpios.
 
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+coches_df <- read_csv("Coches.csv")
+head(coches_df)
+```
 
+Una vez que se tienen los datos limpios (habiendo eliminado aquellos datos que contenían nulos) se puede comenzar a estudiar y analizar los datos mediante gráficos.
 
-#Hacemos un plot entre el precio y los caballos.
-```{r}
-ggplot(data = coches_df, mapping = aes(x = as.numeric(cc_data), y = as.numeric(precio_data), colour = ano_data)) +
+## Hacemos un plot entre el precio y el combustible (coloreandolo por los años)
+
+Vemos que no existe una relación detectable a simple vista entre el precio y el número de kilómetros.
+
+```{r echo=FALSE}
+ggplot(data = coches_df, mapping = aes(x = as.numeric(kms_data), y = as.numeric(precio_data), colour = ano_data)) +
   geom_point()
 ```
 
+## Hacemos un plot del número de coches por año de versión.
 
-```{r}
+Vemos la gran mayoría de coches que se están vendiendo son del 2011.
+
+```{r echo=FALSE}
 ggplot(coches_df, aes(ano_data)) + geom_bar(fill='darkblue',color="darkred")  
+```
 
-{r eval=FALSE, include=FALSE}
+
+## Hacemos un plot de facetas
+
+Se ha hecho un plot por facetas, utilizando el precio, el combustible y el número de puertas de cada vehículo. Vemos que la mayoría de los vehículos son de tipo diésel y tienen 5 puertas.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 ggplot(coches_df, aes(x = puertas_data, y = precio_data)) +
   geom_point() + geom_smooth() + 
   facet_grid(~combustible)
 ```
 
+## Hacemos un plot con un tema distinto
 
-```{r}
-Salaries <- read.csv("C:/Users/50051120/Desktop/Clases R/PracticaCamilla/Salaries.csv")
-```
+Como se puede observar, vemos que existe una relación lineal entre el precio y los caballos. Como cabe esperar, cuanto mayor sea la potencia de un coche, mayor será su precio.
 
-
-```{r}
+```{r echo=FALSE}
 #https://ggplot2.tidyverse.org/reference/ggtheme.html
 p1 <- ggplot(coches_df) +
   geom_point(aes(x = as.numeric(cc_data), y = as.numeric(precio_data), colour = combustible)) +
@@ -119,25 +179,30 @@ p1 <- ggplot(coches_df) +
        y = "Precio",
        colour = "Combustible")
 p1 + theme_dark()
+
 ```
 
+## Usamos el paquete EXPSS para crear tablas
 
-
-```{r}
+```{r echo=FALSE}
 #https://cran.r-project.org/web/packages/expss/vignettes/tables-with-labels.html
-library(expss)
 Salaries = apply_labels(coches_df,
                       precio_data = "Precio",
                       combustible = "Combustible",
-                      ano_data = "Año",
+                      ano_data = "Anio",
                       kms_data = "Kilometros",
                       puertas_data = "Puertas",
                       cc_data = "Caballos"
 )
+```
+
+### Tabla sobre los precios y las puertas de los coches
+```{r echo=FALSE}
 cro(coches_df$precio_data, coches_df$puertas_data)
 ```
 
+### Tabla sobre los vehiculos en distintos años, su combustible y el numero de puertas
 
-```{r}
+```{r echo=FALSE}
 cro_cpct(coches_df$ano_data, list(total(), coches_df$combustible, coches_df$puertas_data))
 ```
